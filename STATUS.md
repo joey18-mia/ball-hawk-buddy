@@ -7,13 +7,12 @@
   sandbox can't isolate the filesystem, so file-writing commands fail).
 - `@supabase/ssr` upgraded to **0.12.0** (to align with `supabase-js` 2.108).
 - `src/proxy.ts` renamed from `src/middleware.ts` (Next 16 convention).
-- **NOT yet tested against a live Supabase project** — still need to:
-  1. Run `supabase/schema.sql` in the Supabase SQL editor.
-  2. `cp .env.local.example .env.local` and fill in URL + anon key + site URL.
-  3. Add `http://localhost:3000/auth/callback` as a redirect URL in Supabase Auth.
-  4. `npm run dev` and test **signup → username → login → password reset**.
-- **Milestone 2 (Game Mode capture): NOT started**, pending confirmation that
-  signup/login works.
+- **Verified end-to-end against a live Supabase project** (Jun 26): schema run,
+  `.env.local` configured, redirect URL added, and the full auth flow tested —
+  **signup → email confirmation → login → password reset → set new password** all
+  pass. Custom SMTP (Resend) is configured so email templates can use the
+  `token_hash`/OTP link format.
+- **Milestone 2 (Game Mode capture): NOT started** — now cleared to begin.
 
 ## What's built (Milestone 1)
 - **PWA scaffold**: Next.js 16 + TypeScript, `manifest.webmanifest`, SVG icons,
@@ -38,6 +37,14 @@
   schema resolved to `never`. Fixed by converting `Row` shapes to `type` aliases,
   flattening `Insert` types, and using the canonical empty
   `Views`/`Functions`/`CompositeTypes` shape.
+- Password-reset / email links failed with `pkce_code_verifier_not_found`. PKCE
+  needs a client-stored verifier that isn't present when a link is opened from an
+  email, so `exchangeCodeForSession` failed. Fixed by (a) hardening
+  `src/app/auth/callback/route.ts` to log the real error and also accept
+  `token_hash` + `type` links via `verifyOtp`, and (b) switching the Supabase
+  email templates (reset + confirm) to the `token_hash` link format. Editing
+  those templates requires custom SMTP, so Resend was configured (also removes
+  the built-in email rate limit).
 
 ## Next up (Milestone 2 — do NOT start until confirmed)
 Home screen (Game Mode / Enrich / Tendencies placeholder / Gallery) · Game Mode
