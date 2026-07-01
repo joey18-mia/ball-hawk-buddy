@@ -1,7 +1,26 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getProfile } from "@/core/profiles/profileService";
 import SignOutButton from "@/components/SignOutButton";
+
+const NAV = [
+  {
+    href: "/enrich",
+    title: "Enrich",
+    subtitle: "Add detail to past catches",
+  },
+  {
+    href: "/tendencies",
+    title: "Tendencies",
+    subtitle: "Who gives up the most balls",
+  },
+  {
+    href: "/gallery",
+    title: "Gallery",
+    subtitle: "Your collection",
+  },
+];
 
 export default async function HomePage() {
   const supabase = await getSupabaseServerClient();
@@ -19,26 +38,32 @@ export default async function HomePage() {
   }
 
   const profile = profileResult.data;
-  const greetingName = profile.display_name || profile.username;
 
   return (
     <main className="home">
       <header className="home-header">
         <div className="who">
-          <span className="hello">Welcome to Ball Hawk Buddy</span>
+          <span className="hello">Ball Hawk Buddy</span>
           <span className="name">@{profile.username}</span>
         </div>
         <SignOutButton />
       </header>
 
-      <div className="alert success">
-        You&apos;re signed in, {greetingName}. Auth + profile setup is working.
-      </div>
+      <nav className="home-nav">
+        <Link className="tile-btn hero" href="/game">
+          <span className="tile-title">Game Mode</span>
+          <span className="tile-sub">Check in and log catches — fast</span>
+        </Link>
 
-      <p className="placeholder-note">
-        Next up (Milestone 2): the Game Mode home with Game Mode, Enrich,
-        Tendencies, and Gallery — and the offline-capable Catch flow.
-      </p>
+        <div className="home-grid">
+          {NAV.map((item) => (
+            <Link key={item.href} className="tile-btn" href={item.href}>
+              <span className="tile-title">{item.title}</span>
+              <span className="tile-sub">{item.subtitle}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
     </main>
   );
 }

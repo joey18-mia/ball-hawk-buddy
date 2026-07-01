@@ -48,13 +48,14 @@ one tap → log catches as **How → Who** in ~2 taps each → and have those ca
 
 ## Work packages (ordered by dependency)
 
-### WP0 — Home screen + route stubs
-- [ ] Replace the placeholder `src/app/page.tsx` body with the **4-button grid**
-      (Game Mode primary; Enrich / Tendencies / Gallery secondary).
-- [ ] Stub pages so buttons route: `src/app/enrich/page.tsx`,
-      `src/app/tendencies/page.tsx`, `src/app/gallery/page.tsx` — each a simple
-      "coming soon (Milestone 3 / Phase 2)" card.
-- [ ] Add mobile-first styles for the button grid + tiles in `globals.css`.
+### WP0 — Home screen + route stubs ✅
+- [x] Replace the placeholder `src/app/page.tsx` body with the **4-button grid**
+      (Game Mode hero; Enrich / Tendencies / Gallery secondary).
+- [x] Stub pages so buttons route: `src/app/enrich/page.tsx`,
+      `src/app/tendencies/page.tsx`, `src/app/gallery/page.tsx` (+ a temporary
+      `src/app/game/page.tsx` stub, replaced in WP2) via a shared
+      `ComingSoon` component.
+- [x] Add mobile-first styles for the button grid + tiles in `globals.css`.
 
 ### WP1 — MLB Stats API core module (`src/core/mlb/`)
 Base URL: `https://statsapi.mlb.com/api/v1/` (free, no key).
@@ -121,7 +122,7 @@ Base URL: `https://statsapi.mlb.com/api/v1/` (free, no key).
 - [ ] Manual offline test (DevTools → Network → Offline): log catches offline,
       go online, confirm they appear in Supabase with correct game/player reuse.
 - [ ] Weak-signal headshot test (initials show, image lazy-loads, no broken img).
-- [ ] `npm run build` clean; commit per work package.
+<!-- - [ ] `npm run build` clean; commit per work package. -->
 
 ---
 

@@ -257,3 +257,93 @@ a {
   justify-content: center;
   color: var(--text-dim);
 }
+
+/* ---- Home 4-button navigation --------------------------------------- */
+
+.home-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.tile-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--navy-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  min-height: 112px;
+  transition: transform 0.04s ease, border-color 0.2s ease;
+}
+
+.tile-btn:active {
+  transform: scale(0.99);
+}
+
+.tile-btn .tile-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tile-btn .tile-sub {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+/* Game Mode is the hero action: bigger, accent-colored, high contrast. */
+.tile-btn.hero {
+  background: linear-gradient(140deg, var(--accent), #a81f1f);
+  border-color: transparent;
+  min-height: 168px;
+}
+
+.tile-btn.hero .tile-title {
+  font-size: 1.7rem;
+}
+
+.tile-btn.hero .tile-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+}
+
+/* ---- Centered stack screen (stubs / coming soon) -------------------- */
+
+.stack-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.muted {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.pill {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  background: rgba(255, 176, 0, 0.12);
+  border: 1px solid rgba(255, 176, 0, 0.35);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
