@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { AcquisitionType } from "@/core/types/database";
+import type { MlbPerson } from "@/core/mlb/types";
 import { type ActiveCheckin, isCheckinForToday, loadCheckin } from "@/lib/checkin";
 import { todayIso } from "@/core/mlb/mlbClient";
+import WhoPicker from "./WhoPicker";
 
 type Step = "how" | "who";
 
@@ -16,20 +18,34 @@ const HOW_OPTIONS: { value: AcquisitionType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+function howLabel(value: AcquisitionType): string {
+  return HOW_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
+
+interface Logged {
+  how: AcquisitionType;
+  personName: string | null;
+}
+
 export default function CatchFlow({ userId }: { userId: string }) {
-  void userId; // used when saving the catch (WP5)
+  void userId; // used when persisting the catch (WP5)
 
   const [checkin, setCheckin] = useState<ActiveCheckin | null>(null);
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<Step>("how");
   const [how, setHow] = useState<AcquisitionType | null>(null);
+  const [logged, setLogged] = useState<Logged | null>(null);
 
   useEffect(() => {
+    // Hydrate client-only persisted state (localStorage) after mount. Doing this
+    // in a lazy initializer would mismatch SSR (no localStorage on the server).
+    /* eslint-disable react-hooks/set-state-in-effect */
     const existing = loadCheckin();
     if (existing && isCheckinForToday(existing, todayIso())) {
       setCheckin(existing);
     }
     setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   if (!ready) {
@@ -60,6 +76,42 @@ export default function CatchFlow({ userId }: { userId: string }) {
   function selectHow(value: AcquisitionType) {
     setHow(value);
     setStep("who");
+  }
+
+  function commit(personName: string | null) {
+    if (how == null) return;
+    // WP5 will enqueue the catch to the offline queue here.
+    setLogged({ how, personName });
+  }
+
+  function logAnother() {
+    setLogged(null);
+    setHow(null);
+    setStep("how");
+  }
+
+  // Confirmation after a catch is logged — the sentence, in capture language.
+  if (logged) {
+    const sentence = logged.personName
+      ? `${howLabel(logged.how)} from ${logged.personName}`
+      : `${howLabel(logged.how)} — skipped (add player later)`;
+    return (
+      <main className="game-screen">
+        <div className="card">
+          <span className="pill">Logged</span>
+          <h2>{sentence}</h2>
+          <p className="muted">
+            {checkin.homeName} vs. {checkin.awayName}
+          </p>
+          <button className="btn" onClick={logAnother}>
+            Log another catch
+          </button>
+          <Link className="btn secondary" href="/game">
+            Done
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -96,12 +148,14 @@ export default function CatchFlow({ userId }: { userId: string }) {
           </div>
         </div>
       ) : (
-        <div className="card">
+        <div className="card who-card">
           <h2>Who gave it up?</h2>
-          <p className="muted">
-            Roster picker coming next (WP4). You picked:{" "}
-            <strong>{how}</strong>.
-          </p>
+          <WhoPicker
+            roster={checkin.roster}
+            homeCode={checkin.homeCode}
+            onPick={(p: MlbPerson) => commit(p.fullName)}
+            onSkip={() => commit(null)}
+          />
         </div>
       )}
     </main>

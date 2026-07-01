@@ -64,12 +64,16 @@ export default function CheckIn({
   }, [homeTeam]);
 
   useEffect(() => {
+    // Hydrate client-only persisted state (localStorage) after mount. Doing this
+    // in a lazy initializer would mismatch SSR (no localStorage on the server).
+    /* eslint-disable react-hooks/set-state-in-effect */
     const existing = loadCheckin();
     if (existing && isCheckinForToday(existing, todayIso())) {
       setActive(existing);
       setPhase("checkedin");
       return;
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     beginFlow();
   }, [beginFlow]);
 

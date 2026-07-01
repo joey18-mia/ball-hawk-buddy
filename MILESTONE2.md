@@ -92,17 +92,19 @@ verified against the live API.
       One tap advances to Who. Back nav between steps. (Who step is a placeholder
       until WP4.)
 
-### WP4 — Catch flow, Step 2 "Who" (roster picker)
-- [ ] Full-width search bar: **contains** match (`includes`), case-insensitive,
+### WP4 — Catch flow, Step 2 "Who" (roster picker) ✅
+- [x] Full-width search bar: **contains** match (`includes`), case-insensitive,
       **also matches jersey number**.
-- [ ] Grid of tiles for both teams' active rosters (from the cached check-in).
-- [ ] Tile = name + **jersey badge** + **team-abbrev chip** + headshot;
-      **render colored initials immediately, lazy-load headshot on top**.
-- [ ] Tile border = team color via `resolveMatchupColors` / `borderForTeam`
-      (already in `teamColors.ts`).
-- [ ] **Skip tile last**, fixed gray, "?" — logs a catch with `player_id = null`.
-- [ ] On pick: build the catch payload (acquisition_type, occurred_at = now,
-      person info or null) and hand to the offline queue (WP5).
+- [x] Grid of tiles for both teams' active rosters (from the cached check-in),
+      home team first then alphabetical.
+- [x] Tile = name + **jersey badge** + **team-abbrev chip** + headshot;
+      **colored initials render immediately, headshot lazy-loads on top** with an
+      `onError` fallback (readable text color computed per team color).
+- [x] Tile border = team color via `borderForTeam` (already in `teamColors.ts`).
+- [x] **Skip tile last**, fixed gray, "?" — commits a catch with no player.
+- [x] On pick/skip: `commit()` shows the sentence confirmation; the actual
+      offline-queue enqueue is wired in WP5. (Also fixed a WP2 lint nit:
+      set-state-in-effect for localStorage hydration.)
 
 ### WP5 — Offline queue + background sync
 - [ ] `src/lib/offline/catchQueue.ts` — IndexedDB store of pending catches
