@@ -85,9 +85,12 @@ verified against the live API.
       existing same-day check-in; "check into a different game" to reset.
 - [x] Verified MLB API sends `Access-Control-Allow-Origin: *` (no CORS proxy).
 
-### WP3 — Catch flow, Step 1 "How" (`/game/catch`)
-- [ ] 4–5 big tap targets: Home Run, Foul Ball, Toss-up, Batting Practice, Other.
-      One tap advances to Who. No scrolling, no thinking.
+### WP3 — Catch flow, Step 1 "How" (`/game/catch`) ✅
+- [x] `/game/catch` server page (auth gate + userId) → `CatchFlow` client
+      component with `how → who` step state; guards "check in first".
+- [x] 5 big tap targets: Home Run, Foul Ball, Toss-up, Batting Practice, Other.
+      One tap advances to Who. Back nav between steps. (Who step is a placeholder
+      until WP4.)
 
 ### WP4 — Catch flow, Step 2 "Who" (roster picker)
 - [ ] Full-width search bar: **contains** match (`includes`), case-insensitive,
