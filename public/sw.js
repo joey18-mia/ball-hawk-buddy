@@ -1,9 +1,13 @@
 /* Ball Hawk Buddy service worker.
  *
- * Phase 1 / Milestone 1 scope: make the app installable and keep the app shell
- * available offline. The offline *Catch queue* (Milestone 2) is handled in app
- * code via IndexedDB + background sync; this SW will gain a 'sync' handler then.
+ * Scope: make the app installable, keep the app shell available offline, and —
+ * as a progressive enhancement — wake open clients to flush the offline Catch
+ * queue when connectivity returns (Background Sync API; unsupported on iOS,
+ * where the in-app flush triggers handle it). The queue itself lives in app
+ * code (IndexedDB); the SW only nudges clients to drain it.
  */
+
+const SYNC_TAG = "bhb-sync-catches";
 
 const CACHE_VERSION = "bhb-v1";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon.svg"];
@@ -28,6 +32,20 @@ self.addEventListener("activate", (event) => {
         )
       )
       .then(() => self.clients.claim())
+  );
+});
+
+// Background sync: when the browser fires this (connectivity returned), tell any
+// open client to drain the IndexedDB catch queue. If no client is open we can't
+// sync (no auth in the SW), which is fine — the next app open will flush.
+self.addEventListener("sync", (event) => {
+  if (event.tag !== SYNC_TAG) return;
+  event.waitUntil(
+    self.clients
+      .matchAll({ includeUncontrolled: true, type: "window" })
+      .then((clients) =>
+        clients.forEach((c) => c.postMessage({ type: "bhb:flush" }))
+      )
   );
 });
 

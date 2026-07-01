@@ -106,20 +106,26 @@ verified against the live API.
       offline-queue enqueue is wired in WP5. (Also fixed a WP2 lint nit:
       set-state-in-effect for localStorage hydration.)
 
-### WP5 — Offline queue + background sync
-- [ ] `src/lib/offline/catchQueue.ts` — IndexedDB store of pending catches
-      (catch payload + cached game/person context needed to sync).
-- [ ] `enqueueCatch()` called by the Who step; UI confirms instantly ("Logged").
-- [ ] `flushQueue(client)` — for each pending catch: `findOrCreateGame` →
-      `findOrCreatePlayer` (by `mlb_person_id`, null for Skip) → insert `ball`;
-      remove from queue on success, keep + backoff on failure.
-- [ ] Flush triggers: `online` event, `visibilitychange` (foreground), short
-      timer while app open, and on app load.
-- [ ] `src/core/players/playerService.ts` — `findOrCreatePlayer(...)`.
-- [ ] `src/core/balls/ballService.ts` — `insertBall(...)`.
-- [ ] **Progressive enhancement:** register a Background Sync tag in `sw.js`
-      where supported (guarded; no-op on iOS).
-- [ ] UI: small pending-sync indicator (e.g. "2 catches waiting to sync").
+### WP5 — Offline queue + background sync ✅
+- [x] `src/lib/offline/catchQueue.ts` — IndexedDB store of pending catches
+      (catch payload + cached game/person context needed to sync) + a
+      `bhb:queue-changed` event so the UI reacts.
+- [x] `enqueueCatch()` called by the Who step (queue-first, even when online);
+      UI confirms instantly with the sentence.
+- [x] `flushQueue(client)` (`src/lib/offline/sync.ts`) — per pending catch:
+      ensure game → `findOrCreatePlayer` (by `mlb_person_id`, null for Skip) →
+      `insertBall`; remove on success, bump attempts on failure. Guarded against
+      re-entrancy and offline.
+- [x] Flush triggers via `SyncManager` (mounted in layout): `online`,
+      `visibilitychange`, 30s interval, mount, and SW `bhb:flush` messages.
+- [x] `src/core/players/playerService.ts` — `findOrCreatePlayer(...)` (dedupe +
+      race-safe re-fetch on unique violation).
+- [x] `src/core/balls/ballService.ts` — `insertBall(...)`.
+- [x] **Progressive enhancement:** `requestBackgroundSync()` registers a sync tag
+      where supported; `sw.js` `sync` handler messages open clients to flush
+      (no-op on iOS, where the in-app triggers cover it).
+- [x] UI: `SyncManager` pill — "Syncing N catches…" / "N waiting · offline".
+- Note: end-to-end offline behavior gets verified in WP7 (DevTools offline).
 
 ### WP6 — Tutorial sentence
 - [ ] One-line "I caught a ___ from ___" shown on check-in.

@@ -6,6 +6,7 @@ import type { AcquisitionType } from "@/core/types/database";
 import type { MlbPerson } from "@/core/mlb/types";
 import { type ActiveCheckin, isCheckinForToday, loadCheckin } from "@/lib/checkin";
 import { todayIso } from "@/core/mlb/mlbClient";
+import { enqueueCatch } from "@/lib/offline/catchQueue";
 import WhoPicker from "./WhoPicker";
 
 type Step = "how" | "who";
@@ -28,13 +29,13 @@ interface Logged {
 }
 
 export default function CatchFlow({ userId }: { userId: string }) {
-  void userId; // used when persisting the catch (WP5)
-
   const [checkin, setCheckin] = useState<ActiveCheckin | null>(null);
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<Step>("how");
   const [how, setHow] = useState<AcquisitionType | null>(null);
   const [logged, setLogged] = useState<Logged | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Hydrate client-only persisted state (localStorage) after mount. Doing this
@@ -78,15 +79,46 @@ export default function CatchFlow({ userId }: { userId: string }) {
     setStep("who");
   }
 
-  function commit(personName: string | null) {
-    if (how == null) return;
-    // WP5 will enqueue the catch to the offline queue here.
-    setLogged({ how, personName });
+  async function commit(person: MlbPerson | null) {
+    if (how == null || !checkin || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      // Queue-first: write locally, then let SyncManager flush to Supabase.
+      // This keeps the tap instant and works fully offline (spec §7).
+      await enqueueCatch({
+        userId,
+        gameId: checkin.gameId,
+        gamePk: checkin.gamePk,
+        gameDate: checkin.gameDate,
+        homeCode: checkin.homeCode,
+        awayCode: checkin.awayCode,
+        venue: checkin.venue,
+        acquisitionType: how,
+        occurredAt: new Date().toISOString(),
+        person: person
+          ? {
+              mlbPersonId: person.mlbPersonId,
+              fullName: person.fullName,
+              teamCode: person.teamCode,
+              jerseyNumber: person.jerseyNumber,
+              position: person.position,
+              personType: person.personType,
+            }
+          : null,
+      });
+      setLogged({ how, personName: person?.fullName ?? null });
+    } catch {
+      setError("Couldn't save the catch. Try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function logAnother() {
     setLogged(null);
     setHow(null);
+    setError(null);
     setStep("how");
   }
 
@@ -150,11 +182,13 @@ export default function CatchFlow({ userId }: { userId: string }) {
       ) : (
         <div className="card who-card">
           <h2>Who gave it up?</h2>
+          {error ? <div className="alert error">{error}</div> : null}
           <WhoPicker
             roster={checkin.roster}
             homeCode={checkin.homeCode}
-            onPick={(p: MlbPerson) => commit(p.fullName)}
+            onPick={(p: MlbPerson) => commit(p)}
             onSkip={() => commit(null)}
+            disabled={saving}
           />
         </div>
       )}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import SyncManager from "@/components/SyncManager";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -43,6 +44,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="app-shell">{children}</div>
+        <SyncManager />
         <ServiceWorkerRegistrar />
       </body>
     </html>

@@ -599,3 +599,25 @@ a {
   background: #f3f4f6;
   border-color: #d1d5db;
 }
+
+/* ---- Offline sync indicator ----------------------------------------- */
+
+.sync-indicator {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0a1628;
+  background: var(--accent-2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.sync-indicator.offline {
+  background: var(--text-dim);
+  color: var(--ink);
+}
