@@ -19,6 +19,7 @@ import {
   loadCheckin,
   saveCheckin,
 } from "@/lib/checkin";
+import TutorialLine from "./TutorialLine";
 
 type Phase = "loading" | "suggest" | "slate" | "checkedin" | "error";
 
@@ -218,6 +219,8 @@ export default function CheckIn({
             {active.venue ? `${active.venue} · ` : ""}
             {active.roster.length} people on the rosters
           </p>
+
+          <TutorialLine />
 
           <div className="gm-actions">
             <Link className="tile-btn hero" href="/game/catch">

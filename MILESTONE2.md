@@ -127,10 +127,11 @@ verified against the live API.
 - [x] UI: `SyncManager` pill — "Syncing N catches…" / "N waiting · offline".
 - Note: end-to-end offline behavior gets verified in WP7 (DevTools offline).
 
-### WP6 — Tutorial sentence
-- [ ] One-line "I caught a ___ from ___" shown on check-in.
-- [ ] Default ON; dismissible; stays dismissed after first view (localStorage
-      flag), so veterans don't see it.
+### WP6 — Tutorial sentence ✅
+- [x] One-line "I caught a ___ from ___" shown on the checked-in screen
+      (`TutorialLine`).
+- [x] Default ON; dismissible (×); stays dismissed after first view
+      (localStorage flag via `src/lib/tutorial.ts`), so veterans don't see it.
 
 ### WP7 — Polish & test
 - [ ] Manual offline test (DevTools → Network → Offline): log catches offline,
