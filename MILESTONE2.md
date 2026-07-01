@@ -57,18 +57,19 @@ one tap → log catches as **How → Who** in ~2 taps each → and have those ca
       `ComingSoon` component.
 - [x] Add mobile-first styles for the button grid + tiles in `globals.css`.
 
-### WP1 — MLB Stats API core module (`src/core/mlb/`)
-Base URL: `https://statsapi.mlb.com/api/v1/` (free, no key).
-- [ ] `teamIds.ts` — `TeamCode → mlbTeamId` map (+ reverse), covering all 30.
-- [ ] `mlbClient.ts` — pure `fetch` wrappers:
-  - [ ] `getScheduleForDate(date)` and/or `getScheduleForTeam(teamId, date)`
-        → `[{ gamePk, gameDate, home{code,name,id}, away{...}, venue }]`.
-  - [ ] `getActiveRoster(teamId)` → `[{ mlbPersonId, fullName, jerseyNumber,
-        position, personType }]` (player vs. coaching/other staff implied by the
-        roster endpoint used).
-  - [ ] `headshotUrl(mlbPersonId)` — content.mlb.com headshot URL builder.
-- [ ] `types.ts` — `MlbGame`, `MlbPerson`, etc.
-- [ ] Defensive parsing + timeouts (stadium signal); never throw into the UI.
+### WP1 — MLB Stats API core module (`src/core/mlb/`) ✅
+Base URL: `https://statsapi.mlb.com/api/v1/` (free, no key). Response shapes
+verified against the live API.
+- [x] `teamIds.ts` — `TeamCode ↔ mlbTeamId` map, covering all 30.
+- [x] `mlbClient.ts` — pure `fetch` wrappers:
+  - [x] `getScheduleForDate(date)` + `getScheduleForTeam(team, date)`
+        → `MlbGame[]` with home/away resolved to our `TeamCode`.
+  - [x] `getActiveRoster(team)` → `MlbPerson[]` (active players + coaches
+        merged; `person_type` implied by list; coaches best-effort).
+  - [x] `headshotUrl(mlbPersonId)` — img.mlbstatic.com headshot builder.
+  - [x] `todayIso(timeZone?)` helper for the check-in date.
+- [x] `types.ts` — `MlbGame`, `MlbPerson`, `MlbTeamRef`.
+- [x] Defensive parsing + 8s timeout (stadium signal); errors as `MlbApiError`.
 
 ### WP2 — Game Mode check-in (`/game`)
 - [ ] `src/core/games/gameService.ts` — `findOrCreateGame(client, {...})`
