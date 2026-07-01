@@ -71,17 +71,19 @@ verified against the live API.
 - [x] `types.ts` — `MlbGame`, `MlbPerson`, `MlbTeamRef`.
 - [x] Defensive parsing + 8s timeout (stadium signal); errors as `MlbApiError`.
 
-### WP2 — Game Mode check-in (`/game`)
-- [ ] `src/core/games/gameService.ts` — `findOrCreateGame(client, {...})`
+### WP2 — Game Mode check-in (`/game`) ✅
+- [x] `src/core/games/gameService.ts` — `findOrCreateGame(client, {...})`
       (dedupe on `user_id` + `mlb_game_pk`).
-- [ ] `src/lib/checkin.ts` — persist the active check-in (game context + both
-      cached rosters) to localStorage/IndexedDB so catches inherit it.
-- [ ] `/game` page: fetch today's schedule for the user's `home_team`; show
-      one-tap confirm ("You're at: Marlins vs. Mets — confirm").
-- [ ] Fallback UI: pick from today's full slate / search when the suggestion is
-      wrong or there's no home-team game.
-- [ ] On confirm: cache rosters for both teams + show the two Game Mode buttons
-      (**Catch**, **Scouting**). Scouting = Phase 2 → stub/disabled for now.
+- [x] `src/lib/checkin.ts` — persist the active check-in (game context + both
+      cached rosters) to localStorage so catches inherit it + work offline.
+- [x] `/game` page (server) → `CheckIn` client component: auto-suggest today's
+      home-team game with one-tap confirm ("You're at: … — confirm").
+- [x] Fallback UI: pick from today's full slate when the suggestion is wrong or
+      there's no home-team game; graceful empty/error/retry states.
+- [x] On confirm: cache both rosters + show the two Game Mode buttons
+      (**Catch** → `/game/catch`, **Scouting** disabled = Phase 2). Resume an
+      existing same-day check-in; "check into a different game" to reset.
+- [x] Verified MLB API sends `Access-Control-Allow-Origin: *` (no CORS proxy).
 
 ### WP3 — Catch flow, Step 1 "How" (`/game/catch`)
 - [ ] 4–5 big tap targets: Home Run, Foul Ball, Toss-up, Batting Practice, Other.

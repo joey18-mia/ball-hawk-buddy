@@ -347,3 +347,77 @@ a {
   border-radius: 999px;
   padding: 4px 10px;
 }
+
+/* ---- Game Mode: check-in -------------------------------------------- */
+
+.game-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.game-screen .card,
+.game-screen .alert {
+  width: 100%;
+  max-width: 480px;
+}
+
+.game-screen .home-header {
+  width: 100%;
+  max-width: 480px;
+}
+
+.game-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-row {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.game-row:active {
+  transform: scale(0.99);
+}
+
+.game-row:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-row-teams {
+  font-weight: 700;
+}
+
+.game-row-venue {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.gm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tile-btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
