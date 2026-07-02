@@ -9,7 +9,14 @@ import {
   formatMatchup,
 } from "@/core/balls/ballDisplay";
 
-export default async function EnrichPage() {
+export default async function EnrichPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ball?: string }>;
+}) {
+  const { ball: ballId } = await searchParams;
+  if (ballId) redirect(`/enrich/ball/${ballId}`);
+
   const supabase = await getSupabaseServerClient();
 
   const {

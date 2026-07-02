@@ -61,8 +61,9 @@ export type BallCondition = "mint" | "game_marks" | "scuffed";
 
 export type BallBrand =
   | "official_mlb"
+  | "official_mlb_special"
   | "bp_ball"
-  | "commemorative_stamped"
+  | "commemorative_stamped" // legacy; treated like official_mlb_special in UI
   | "unknown";
 
 // ---- Table row shapes ------------------------------------------------------

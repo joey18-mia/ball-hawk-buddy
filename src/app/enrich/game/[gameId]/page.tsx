@@ -54,9 +54,7 @@ export default async function EnrichGamePage({
       <div className="card">
         <p className="muted">{day}</p>
         <h2>Add details</h2>
-        <p className="muted enrich-sub">
-          Pick a catch below. Per-catch editing comes in the next step.
-        </p>
+        <p className="muted enrich-sub">Pick a catch to add optional detail.</p>
       </div>
 
       <ul className="enrich-catch-list">
@@ -64,7 +62,7 @@ export default async function EnrichGamePage({
           <li key={ball.id}>
             <Link
               className={`enrich-catch-row${hasUnresolvedSkip(ball) ? " has-skip" : ""}`}
-              href={`/enrich?ball=${ball.id}`}
+              href={`/enrich/ball/${ball.id}`}
             >
               <span className="pill">{howLabel(ball.acquisition_type)}</span>
               <span className="enrich-catch-sentence">

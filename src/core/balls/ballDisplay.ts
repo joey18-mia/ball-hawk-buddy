@@ -5,6 +5,7 @@
 
 import { TEAMS, type TeamCode } from "../teams/teamColors";
 import type { AcquisitionType, Ball, Game, Player } from "../types/database";
+import { ballBrandRevealsSpeciality } from "./enrichFieldLabels";
 
 export const HOW_LABELS: Record<AcquisitionType, string> = {
   home_run: "Home Run",
@@ -92,9 +93,13 @@ export function hasUnresolvedSkip(ball: Ball): boolean {
 
 /** True when optional enrichment fields are all still empty. */
 export function isThinEnrichment(ball: Ball): boolean {
+  const specialityThin = ballBrandRevealsSpeciality(ball.ball_brand)
+    ? ball.speciality == null || ball.speciality.length === 0
+    : true;
+
   return (
     ball.location == null &&
-    (ball.speciality == null || ball.speciality.length === 0) &&
+    specialityThin &&
     ball.notes == null &&
     ball.snag_method == null &&
     ball.ball_condition == null &&

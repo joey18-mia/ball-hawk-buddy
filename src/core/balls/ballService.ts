@@ -6,7 +6,19 @@
  */
 
 import type { AppSupabaseClient } from "../auth/authService";
-import type { AcquisitionType, Ball, BallInsert, Game, Player } from "../types/database";
+import type {
+  AcquisitionType,
+  Ball,
+  BallBrand,
+  BallCondition,
+  BallInsert,
+  BallLocation,
+  BallSpeciality,
+  Game,
+  Player,
+  SnagMethod,
+} from "../types/database";
+import type { Database } from "../types/database";
 import type { ServiceResult } from "../profiles/profileService";
 
 export interface BallWithContext {
@@ -83,6 +95,49 @@ export async function insertBall(
   const { data, error } = await client
     .from("balls")
     .insert(insert)
+    .select("*")
+    .single();
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data };
+}
+
+export interface BallEnrichmentPatch {
+  playerId?: string | null;
+  location?: BallLocation | null;
+  speciality?: BallSpeciality[] | null;
+  notes?: string | null;
+  snagMethod?: SnagMethod | null;
+  ballCondition?: BallCondition | null;
+  ballBrand?: BallBrand | null;
+  kept?: boolean | null;
+  noPlayerResolved?: boolean;
+}
+
+export async function updateBall(
+  client: AppSupabaseClient,
+  ballId: string,
+  userId: string,
+  patch: BallEnrichmentPatch
+): Promise<ServiceResult<Ball>> {
+  const update: Database["public"]["Tables"]["balls"]["Update"] = {};
+  if (patch.playerId !== undefined) update.player_id = patch.playerId;
+  if (patch.location !== undefined) update.location = patch.location;
+  if (patch.speciality !== undefined) update.speciality = patch.speciality;
+  if (patch.notes !== undefined) update.notes = patch.notes?.trim() || null;
+  if (patch.snagMethod !== undefined) update.snag_method = patch.snagMethod;
+  if (patch.ballCondition !== undefined) update.ball_condition = patch.ballCondition;
+  if (patch.ballBrand !== undefined) update.ball_brand = patch.ballBrand;
+  if (patch.kept !== undefined) update.kept = patch.kept;
+  if (patch.noPlayerResolved !== undefined) {
+    update.no_player_resolved = patch.noPlayerResolved;
+  }
+
+  const { data, error } = await client
+    .from("balls")
+    .update(update)
+    .eq("id", ballId)
+    .eq("user_id", userId)
     .select("*")
     .single();
 

@@ -52,7 +52,7 @@ export default async function GalleryDetailPage({
       <div className="card gallery-detail">
         <Link
           className="enrich-corner"
-          href={`/enrich?ball=${ball.id}`}
+          href={`/enrich/ball/${ball.id}?from=gallery`}
           title="Enrich this catch"
         >
           Enrich

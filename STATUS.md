@@ -3,6 +3,31 @@
 > **Master tracker for milestones:** `MILESTONE2.md` (capture — done) ·
 > `MILESTONE3.md` (Gallery + Enrich — in progress) · `ballhawk-build-spec.md`
 > (full spec + §9a branding-before-domain).
+>
+> **New chat?** Read this file + `MILESTONE3.md` first — they are the source of
+> truth for what's done and what's next. Do not rely on prior conversation context.
+
+## START HERE — session handoff (Jul 2, 2026)
+
+**Project:** Ball Hawk Buddy — PWA for logging baseballs at the stadium (Next.js 16,
+Supabase, MLB Stats API). Mobile-first; offline catch queue is critical.
+
+**Done:** M1 (auth/PWA) · M2 (Game Mode capture + sync) · M3 WP0–WP4 (Gallery +
+Enrich per-catch form). All committed and pushed to `origin/main`.
+
+**M3 WP4 highlights:** `/enrich/ball/[ballId]` form saves optional fields via
+`updateBall`; speciality tags **only** when ball type = Official MLB — Special;
+skip → assign player via MLB roster when game has `mlb_game_pk`.
+
+**Next task (do not skip ahead):** **M3 WP5** — HR skip assist: MLB API lists who
+homered that game → one-tap assign for skipped home runs. See `MILESTONE3.md` WP5.
+
+**After M3:** WP6 close-out · WP7 game-scoped location · WP8 backfill nudge ·
+WP9 polish/build · branding pass (spec §9a) · domain.
+
+**Run:** `npm run dev` → http://localhost:3000 · `.env.local` required (gitignored).
+
+---
 
 ## Current Status (as of Jul 2, 2026)
 
@@ -12,9 +37,8 @@
   How → Who catch flow, offline queue + sync to Supabase, tutorial line. Online
   sync verified; weak-signal headshots verified. True offline round-trip on a
   production build deferred (see `MILESTONE2.md`).
-- **Milestone 3 (Gallery + Enrich): 🔄 In progress** — Gallery shipped (WP0–WP2);
-  Enrich shell + game-grouped list built (WP3, uncommitted). Per-catch enrich
-  form (WP4+) not started.
+- **Milestone 3 (Gallery + Enrich): 🔄 In progress** — WP0–WP4 **done** (Gallery +
+  Enrich shell + per-catch form). WP5–WP9 remain.
 
 **Run locally:** `npm run dev` → http://localhost:3000  
 **Build note:** on this Windows machine, `npm run build` must run with the sandbox
@@ -45,14 +69,18 @@ disabled (see fix log below).
 - **Gallery (committed):** `/gallery` tinted ball-icon grid → `/gallery/[id]`
   sentence detail + corner Enrich link. Read layer: `listBallsForUser`,
   `getBallWithContext`, `ballDisplay.ts`.
-- **Enrich (WP3, pending commit):** `/enrich` game-grouped queue with gentle
-  copy + skip highlighting; `/enrich/game/[gameId]` catch list for a game.
-- **DB patch applied:** `supabase/patch_balls_enrichment.sql` run in Supabase
-  (enrichment columns on `balls` for M3 Enrich forms).
+- **Enrich shell (committed):** `/enrich` game-grouped queue; `/enrich/game/[id]`
+  catch list; skip highlighting; stack-screen spacing fix.
+- **Per-catch enrich (WP4, committed):** `/enrich/ball/[ballId]` form —
+  location, snag method, condition, ball type, kept, notes; roster-based player
+  assign for skips; **speciality tags only when ball type = Official MLB —
+  Special**; `updateBall` + `enrichFieldLabels.ts`.
+- **DB patch applied:** `supabase/patch_balls_enrichment.sql` run in Supabase.
 
 ### Not built yet
-- Enrich per-catch form, HR skip resolution (MLB API), close-out, game-scoped
-  location, backfill-at-signup (M3 WP4–WP8).
+- HR skip resolution (MLB “who homered”), permanent close-out, game-scoped
+  location, backfill-at-signup (M3 WP5–WP8).
+- M3 polish + clean production build (WP9).
 - Tendencies, Scouting, OOP ranking (Phase 2).
 - Friends, verification (Phase 3).
 - Photos, custom Gallery icons / branding pass (pre-domain — spec §9a).
@@ -67,16 +95,18 @@ disabled (see fix log below).
 | Jun 26 | Password-reset links: `pkce_code_verifier_not_found` | Auth callback accepts `token_hash` + OTP; email templates use OTP format; Resend SMTP. |
 | Jul 1 | Catch screen: "check in first" after check-in | Store local `todayIso()` at check-in, not MLB UTC `gameDate`. |
 | Jul 2 | Sync pill stuck: "Syncing 1 catch…" | Live `balls` table missing enrichment columns; `insertBall` now sends only 5 core fields. Added `[sync]` diagnostics + `patch_balls_enrichment.sql`. |
+| Jul 2 | Enrich game view: first catch cramped under header card | Added `gap: 14px` to `.stack-screen`. |
 
 ---
 
 ## Next up
 
-1. **Commit + continue M3:** WP4 per-catch enrich form (`/enrich?ball=…`), then
-   HR skip resolution, close-out, game-scoped location, backfill nudge.
-2. **Branding pass (pre-domain):** custom Gallery acquisition icons, PWA icon,
-   copy polish — see `ballhawk-build-spec.md` §9a.
-3. **Optional:** production-build offline round-trip test for catch sync.
+1. **WP5 — HR skip assist:** MLB API “who homered that game” → one-tap assign for
+   skipped home runs (`MILESTONE3.md` WP5).
+2. **WP6 — Close-out:** “No known player / good enough” → `no_player_resolved`.
+3. **WP7 — Game-scoped location:** set once per game, bulk-apply to all catches.
+4. **WP8 — Backfill nudge** at signup; **WP9 — polish + `npm run build`**.
+5. **Branding pass (pre-domain):** custom Gallery icons — spec §9a.
 
 ---
 
