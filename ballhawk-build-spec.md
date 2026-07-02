@@ -196,6 +196,25 @@ What this changes:
 
 ---
 
+## 9a. Branding & visual polish (pre-domain)
+
+**When:** After Phase 1 features work end-to-end (Milestones 1–3), **before** buying a domain and pointing production traffic at the app. This is the last “make it feel real” pass — not a blocker for building features.
+
+**Why not earlier:** Functional placeholders (tinted ball icons, system fonts, default PWA icons) are enough to develop and test. Custom assets are expensive to redo if UX still moves.
+
+**Scope of the branding pass:**
+- **Gallery tile icons** — replace the interim tinted-ball circles with a cohesive set of acquisition-type icons (home run, foul, toss-up, BP, other). Prefer **one custom set from your designer** (5–6 icons, single stroke/style, works at ~64px on navy). Stock stick-figure packs are OK as a *temporary* dev placeholder only; mixed stock sources look worse than simple colored balls and dilute the trophy-case feel.
+- **App icon + PWA manifest** — home-screen icon, splash, theme colors aligned to brand.
+- **Typography / color refinement** — optional tightening of the navy palette, accent usage, button weights (keep mobile tap targets).
+- **Copy pass** — tutorial, empty states, Enrich invitation tone (already spec’d; polish wording).
+- **Domain purchase** — register only after the above (see §9 upfront cost). Deploy to Vercel with `NEXT_PUBLIC_SITE_URL` updated; Supabase redirect URLs for prod.
+
+**Explicitly deferred past branding:** player headshots (MLB API), photos (§8), Tendencies/Scouting art.
+
+**Gallery icon note (interim vs. final):** §4 describes tinted balls as the *layout* placeholder (photo-shaped slot). The tint-only circles are implementation placeholders until the branding pass delivers proper per-`how` icons — same grid, swap assets.
+
+---
+
 ## 10. Data model
 
 PostgreSQL via Supabase. `auth.users` is managed by Supabase Auth; everything else is `public` schema. **Apply Row Level Security on every table** (§11).

@@ -61,11 +61,12 @@ catches — plus a gentle **backfill nudge** at signup so day one isn't empty.
 - [x] Small corner **Enrich** button → `/enrich?ball=<id>` (wired in WP4).
 - [x] Back nav to grid.
 
-### WP3 — Enrich shell + game-grouped list (`/enrich`)
-- [ ] Replace stub; auth gate.
-- [ ] Gentle header copy (*"Some catches still need enrichment."*).
-- [ ] Game-grouped rows: *"Sunday vs. Mets · 4 balls · add details"*; highlight
+### WP3 — Enrich shell + game-grouped list (`/enrich`) ✅
+- [x] Replace stub; auth gate.
+- [x] Gentle header copy (*"Some catches still need enrichment."*).
+- [x] Game-grouped rows: *"Sunday vs. Mets · 4 balls · add details"*; highlight
       games with unresolved Skips.
+- [x] `/enrich/game/[gameId]` — catch list for a game (links to per-catch form in WP4).
 
 ### WP4 — Per-catch enrich form
 - [ ] Route: `/enrich/[ballId]` (or query param from Gallery).
@@ -105,4 +106,5 @@ catches — plus a gentle **backfill nudge** at signup so day one isn't empty.
 One commit per work package (WP0 … WP9), pushed after each.
 
 ## Status snapshot
-**Started:** Jul 2, 2026 — WP0–WP2 (Gallery) **done** (uncommitted). Next: WP3 Enrich shell.
+**Jul 2, 2026** — Gallery committed (`467d0bc`). WP3 Enrich shell built (uncommitted).
+Next: WP4 per-catch enrich form.

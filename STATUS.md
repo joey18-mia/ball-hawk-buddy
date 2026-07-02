@@ -1,53 +1,88 @@
 # Ball Hawk Buddy — Project Status
 
-## Current Status (as of Jun 26, 2026)
-- **Milestone 1 (Foundation): Build verified** — `npm run build` passes (exit 0,
-  TypeScript clean, all 9 routes compile). Note: build must be run with the
-  sandbox disabled on this Windows machine (the default `workspace_readwrite`
-  sandbox can't isolate the filesystem, so file-writing commands fail).
-- `@supabase/ssr` upgraded to **0.12.0** (to align with `supabase-js` 2.108).
-- `src/proxy.ts` renamed from `src/middleware.ts` (Next 16 convention).
-- **Verified end-to-end against a live Supabase project** (Jun 26): schema run,
-  `.env.local` configured, redirect URL added, and the full auth flow tested —
-  **signup → email confirmation → login → password reset → set new password** all
-  pass. Custom SMTP (Resend) is configured so email templates can use the
-  `token_hash`/OTP link format.
-- **Milestone 2 (Game Mode capture): NOT started** — now cleared to begin.
+> **Master tracker for milestones:** `MILESTONE2.md` (capture — done) ·
+> `MILESTONE3.md` (Gallery + Enrich — in progress) · `ballhawk-build-spec.md`
+> (full spec + §9a branding-before-domain).
 
-## What's built (Milestone 1)
-- **PWA scaffold**: Next.js 16 + TypeScript, `manifest.webmanifest`, SVG icons,
-  service worker (`public/sw.js`, app-shell caching) + client registrar.
-- **Supabase wiring** (anon key only; service-role key never used): browser
-  client, server (SSR) client, and `proxy.ts` session refresh + route gating.
-- **Framework-agnostic core** (`src/core/`, no React/Next imports — reusable by a
-  future Expo app):
-  - `types/database.ts` — DB types mirroring spec §10.
-  - `auth/` — auth service + pure validation.
-  - `profiles/` — profile data access (create/get/update, username availability).
-  - `teams/teamColors.ts` — the provided asset, used as-is.
-- **Auth UI**: signup (email/password + unique username + optional display
-  name/home team), login, password reset, set-new-password, onboarding.
-- **Minimal authed home** (the full 4-button home is Milestone 2).
-- **Reference SQL**: `supabase/schema.sql` (Phase 1 tables + RLS, spec §10/§11).
+## Current Status (as of Jul 2, 2026)
+
+- **Milestone 1 (Foundation): ✅ Complete** — auth, onboarding, PWA scaffold,
+  Supabase + RLS, framework-agnostic core. Verified end-to-end (Jun 26).
+- **Milestone 2 (Game Mode capture): ✅ Complete** — home screen, check-in,
+  How → Who catch flow, offline queue + sync to Supabase, tutorial line. Online
+  sync verified; weak-signal headshots verified. True offline round-trip on a
+  production build deferred (see `MILESTONE2.md`).
+- **Milestone 3 (Gallery + Enrich): 🔄 In progress** — Gallery shipped (WP0–WP2);
+  Enrich shell + game-grouped list built (WP3, uncommitted). Per-catch enrich
+  form (WP4+) not started.
+
+**Run locally:** `npm run dev` → http://localhost:3000  
+**Build note:** on this Windows machine, `npm run build` must run with the sandbox
+disabled (see fix log below).
+
+---
+
+## What's built
+
+### Milestone 1 — Foundation
+- PWA scaffold (Next.js 16 + TypeScript, manifest, service worker, installable).
+- Supabase wiring (browser + SSR clients, `proxy.ts` session refresh + gating).
+- Framework-agnostic core under `src/core/` (types, auth, profiles, team colors).
+- Auth UI: signup, login, password reset, onboarding.
+- Reference SQL: `supabase/schema.sql` (Phase 1 tables + RLS).
+
+### Milestone 2 — Game Mode capture
+- **Home:** 4-button grid (Game Mode, Enrich, Tendencies stub, Gallery).
+- **Game Mode check-in:** MLB schedule auto-suggest, slate fallback, roster cache
+  in localStorage for offline Who picker during the game.
+- **Catch flow:** How → Who (search, team-color tiles, initials-then-headshot,
+  Skip tile); queue-first IndexedDB → Supabase sync via `SyncManager`.
+- **Tutorial:** dismissible one-liner on check-in.
+- **Core modules:** `src/core/mlb/`, `games/`, `players/`, `balls/` (insert),
+  `src/lib/offline/` (queue + sync).
+
+### Milestone 3 — Gallery + Enrich (partial)
+- **Gallery (committed):** `/gallery` tinted ball-icon grid → `/gallery/[id]`
+  sentence detail + corner Enrich link. Read layer: `listBallsForUser`,
+  `getBallWithContext`, `ballDisplay.ts`.
+- **Enrich (WP3, pending commit):** `/enrich` game-grouped queue with gentle
+  copy + skip highlighting; `/enrich/game/[gameId]` catch list for a game.
+- **DB patch applied:** `supabase/patch_balls_enrichment.sql` run in Supabase
+  (enrichment columns on `balls` for M3 Enrich forms).
+
+### Not built yet
+- Enrich per-catch form, HR skip resolution (MLB API), close-out, game-scoped
+  location, backfill-at-signup (M3 WP4–WP8).
+- Tendencies, Scouting, OOP ranking (Phase 2).
+- Friends, verification (Phase 3).
+- Photos, custom Gallery icons / branding pass (pre-domain — spec §9a).
+
+---
 
 ## Key fix log
-- Build initially failed type-check: Supabase `.insert()` collapsed to `never[]`.
-  Root cause: table `Row` shapes were `interface`s — interfaces lack an implicit
-  index signature, so they failed Supabase's `GenericTable` constraint and the
-  schema resolved to `never`. Fixed by converting `Row` shapes to `type` aliases,
-  flattening `Insert` types, and using the canonical empty
-  `Views`/`Functions`/`CompositeTypes` shape.
-- Password-reset / email links failed with `pkce_code_verifier_not_found`. PKCE
-  needs a client-stored verifier that isn't present when a link is opened from an
-  email, so `exchangeCodeForSession` failed. Fixed by (a) hardening
-  `src/app/auth/callback/route.ts` to log the real error and also accept
-  `token_hash` + `type` links via `verifyOtp`, and (b) switching the Supabase
-  email templates (reset + confirm) to the `token_hash` link format. Editing
-  those templates requires custom SMTP, so Resend was configured (also removes
-  the built-in email rate limit).
 
-## Next up (Milestone 2 — do NOT start until confirmed)
-Home screen (Game Mode / Enrich / Tendencies placeholder / Gallery) · Game Mode
-check-in (MLB schedule auto-suggest) · Catch flow (How → Who roster picker, team
--color tiles, jersey/abbrev/initials-then-headshot, Skip tile) · **offline Catch
-queue with background sync** · dismissible tutorial line.
+| Date | Issue | Fix |
+|------|-------|-----|
+| Jun 26 | Supabase `.insert()` typed as `never[]` | Convert table `Row` shapes from `interface` to `type` aliases. |
+| Jun 26 | Password-reset links: `pkce_code_verifier_not_found` | Auth callback accepts `token_hash` + OTP; email templates use OTP format; Resend SMTP. |
+| Jul 1 | Catch screen: "check in first" after check-in | Store local `todayIso()` at check-in, not MLB UTC `gameDate`. |
+| Jul 2 | Sync pill stuck: "Syncing 1 catch…" | Live `balls` table missing enrichment columns; `insertBall` now sends only 5 core fields. Added `[sync]` diagnostics + `patch_balls_enrichment.sql`. |
+
+---
+
+## Next up
+
+1. **Commit + continue M3:** WP4 per-catch enrich form (`/enrich?ball=…`), then
+   HR skip resolution, close-out, game-scoped location, backfill nudge.
+2. **Branding pass (pre-domain):** custom Gallery acquisition icons, PWA icon,
+   copy polish — see `ballhawk-build-spec.md` §9a.
+3. **Optional:** production-build offline round-trip test for catch sync.
+
+---
+
+## Environment
+
+- **Supabase:** live project configured; `.env.local` has URL + anon key +
+  `NEXT_PUBLIC_SITE_URL=http://localhost:3000`.
+- **GitHub:** `origin/main` — push after each work-package commit.
+- **Email:** Resend custom SMTP for auth templates.
