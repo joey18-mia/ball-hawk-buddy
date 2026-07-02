@@ -93,7 +93,11 @@ export default function CheckIn({
         ]);
 
         const supabase = getSupabaseBrowserClient();
-        const gameDate = (game.gameDate || "").slice(0, 10) || todayIso();
+        // Use the LOCAL date (what the schedule was queried with) so it matches
+        // todayIso() everywhere. The MLB gameDate is UTC and can roll to the next
+        // calendar day for evening games, which would fail the "is this check-in
+        // for today?" check on the catch screen.
+        const gameDate = todayIso();
         const result = await findOrCreateGame(supabase, {
           userId,
           gameDate,

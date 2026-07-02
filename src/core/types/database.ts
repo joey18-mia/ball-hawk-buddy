@@ -169,7 +169,20 @@ export interface Database {
         Row: BallRow;
         Insert: WithDefaults<
           BallRow,
-          "id" | "created_at" | "no_player_resolved" | "is_authenticated"
+          // Auto/defaulted columns + all enrichment fields (nullable, filled
+          // later in Enrich mode) are optional on insert. Game Mode sends only
+          // the core fields.
+          | "id"
+          | "created_at"
+          | "no_player_resolved"
+          | "is_authenticated"
+          | "location"
+          | "speciality"
+          | "notes"
+          | "snag_method"
+          | "ball_condition"
+          | "ball_brand"
+          | "kept"
         >;
         Update: Partial<BallRow>;
         Relationships: [];

@@ -10,16 +10,66 @@ A signed-in user can: open the app → tap **Game Mode** → confirm today's gam
 one tap → log catches as **How → Who** in ~2 taps each → and have those catches
 **save offline at the stadium and sync when the connection returns.**
 
+---
+
+## Status snapshot (as of Jul 2, 2026) — START HERE next session
+
+**Working (verified in browser):**
+- Home 4-button screen → Game Mode.
+- Check-in: auto-suggest / slate fallback → confirm → rosters cached.
+- Catch flow end-to-end **online**: How → Who (search, team-color tiles, Skip) →
+  "Logged" confirmation → **catch enqueues and SYNCS to Supabase** (verified: a
+  `balls` row lands; `[sync] done — synced=1` in console).
+- Weak-signal headshots: initials render immediately, headshot lazy-loads on top
+  (verified under Slow 3G) — no broken-image icons.
+- Full production build is clean; all WPs (WP0–WP6) built, committed, and pushed.
+
+**Fixed this session (Jul 2):**
+- **Sync was silently failing** — the pill hung at "Syncing 1 catch…" forever.
+  Root cause: the live `balls` table is **missing the enrichment columns**
+  (created from an older schema; `create table if not exists` can't add columns),
+  and `insertBall` was sending `ball_brand`/etc. as null → PostgREST error
+  "Could not find the 'ball_brand' column …". Fix: `insertBall` now writes ONLY
+  the 5 core fields; enrichment fields are optional on the `BallInsert` type.
+  Added `[sync]` console diagnostics (kept) so future sync failures are visible.
+  Also added `supabase/patch_balls_enrichment.sql` (idempotent `ADD COLUMN IF NOT
+  EXISTS`) to bring the live table up to spec for the M3 Enrich flow.
+- (Jul 1) "Check in first" bug: check-in stored the MLB **UTC** `gameDate` which
+  can roll to the next day for night games, failing the local `todayIso()` check.
+  Fix: store the **local** date at check-in (`src/app/game/CheckIn.tsx`).
+
+**ACTION NEEDED (user):**
+- Run `supabase/patch_balls_enrichment.sql` in the Supabase SQL editor so the
+  `balls` table matches `schema.sql` (not needed for capture; needed for M3).
+
+**OPEN — real offline round-trip still unverified:**
+- Logging a catch **while offline in `next dev`** kicks you off the page. This is
+  a dev-mode limitation, NOT a sync bug: `/game/catch` is a server component
+  behind auth (needs a server round-trip) and `next dev` doesn't precache the app
+  shell in the service worker. The queue-first sync mechanism itself is verified
+  online. **To truly validate stadium-offline, test a production build**
+  (`npm run build && npm start`, SW active): go offline on `/game/catch`, log a
+  catch (should queue → "1 catch waiting · offline"), go online, confirm it syncs.
+  If prod also can't hold the route offline, that's a real gap to design for
+  (client-side session check / SW navigation fallback for the catch route).
+
+**How to run:** `npm run dev` → http://localhost:3000. Build must be run with the
+sandbox disabled on this Windows machine (see `STATUS.md`).
+
+---
+
 ## Definition of done
-- [ ] Home screen shows the 4 buttons (Game Mode, Enrich, Tendencies, Gallery).
-- [ ] Game Mode check-in auto-suggests today's home-team game (one-tap confirm),
+- [x] Home screen shows the 4 buttons (Game Mode, Enrich, Tendencies, Gallery).
+- [x] Game Mode check-in auto-suggests today's home-team game (one-tap confirm),
       with a fallback to pick from today's slate.
-- [ ] Catch flow logs `How → Who` with the roster picker (search, team-color
+- [x] Catch flow logs `How → Who` with the roster picker (search, team-color
       tiles, jersey/abbrev/initials-then-headshot, Skip tile).
-- [ ] A catch logged **offline** is queued locally and **syncs automatically**
-      when back online (verified with DevTools offline mode).
-- [ ] The dismissible tutorial sentence shows on check-in and stays dismissed.
-- [ ] `npm run build` passes clean (TypeScript + lint), no schema changes needed.
+- [~] A catch logged **offline** is queued locally and **syncs automatically**
+      when back online. Online sync **verified** (row lands in Supabase); true
+      offline round-trip needs a **production-build** test (see Status snapshot —
+      dev mode can't serve the auth-gated catch route offline).
+- [x] The dismissible tutorial sentence shows on check-in and stays dismissed.
+- [x] `npm run build` passes clean (TypeScript + lint), no schema changes needed.
 
 ---
 
@@ -133,21 +183,64 @@ verified against the live API.
 - [x] Default ON; dismissible (×); stays dismissed after first view
       (localStorage flag via `src/lib/tutorial.ts`), so veterans don't see it.
 
-### WP7 — Polish & test
-- [ ] Manual offline test (DevTools → Network → Offline): log catches offline,
-      go online, confirm they appear in Supabase with correct game/player reuse.
-- [ ] Weak-signal headshot test (initials show, image lazy-loads, no broken img).
-<!-- - [ ] `npm run build` clean; commit per work package. -->
+### WP7 — Polish & test (MOSTLY DONE)
+- [x] `npm run build` clean (all 14 routes compile, TypeScript + eslint clean).
+- [x] Online capture flow works end-to-end in the browser (through "Logged").
+- [x] **Sync flush completes** — verified the `balls` row lands in Supabase
+      (`[sync] done — synced=1`). Fixed the `ball_brand` schema-cache error by
+      trimming `insertBall` to core fields (see Fixed this session).
+- [x] Weak-signal headshot test — initials show, headshot lazy-loads on top,
+      no broken images (verified under Slow 3G).
+- [ ] **Offline round-trip on a PRODUCTION build** (`npm run build && npm start`):
+      dev mode can't serve the auth-gated `/game/catch` route offline, so this
+      must be validated against the SW-precached prod build. Deferred by choice —
+      see Status snapshot "OPEN" item. Sync mechanism itself is verified online.
 
 ---
 
-## Out of scope (later milestones)
-- **Gallery** (icon grid → sentence view → corner Enrich) — Milestone 3.
-- **Enrich Past Catches** (completeness queue, HR skip-resolution) — Milestone 3.
-- **Tendencies / Scouting / OOP ranking** — Phase 2 (spec §6).
-- **Friends / verification** — Phase 3.
-- **Photos** — deferred (spec §8).
+## Roadmap / future plans
 
-## Suggested commit cadence
-One commit per work package (WP0 … WP7), pushed after each, so progress is
-tracked granularly (not just at release). Tag the milestone when WP7 passes.
+### Finish Milestone 2 (immediate)
+1. Confirm/fix offline sync completion (open item above).
+2. Complete WP7 offline + weak-signal tests.
+3. Final WP7 commit; optionally tag the milestone.
+
+### Milestone 3 — the rest of spec Phase 1 (capture-and-complete loop)
+- **Gallery** (spec §4): icon grid, one tile per catch tinted by `how`; tap →
+  sentence view; corner **Enrich** button. Built photo-shaped for later photos.
+- **Enrich Past Catches** (spec §5): completeness state per catch; gentle
+  game-grouped surfacing; prioritize **unresolved Skips**; game-scoped assisted
+  completion incl. **MLB "who homered that day"** skip-resolution; permanent
+  close-out ("no known player / good enough"). Reachable from Gallery too.
+- **Backfill at signup** (spec §5): onboarding nudge to add a few past catches
+  via the same How → Who flow.
+
+### Phase 2 — Player intelligence (spec §6)
+- **Tendencies** league-wide directory + **player profiles**.
+- **OOP ranking** (all balls attributed to a player, aggregated across users) —
+  a computed view/query over `balls` grouped by `player_id`.
+- **Scouting** (2nd Game Mode button): game-scoped Tendencies for the ~50 people
+  in the current matchup.
+- Tendencies **area filter**.
+
+### Phase 3 — Social + depth (spec §12)
+- **Friends** (request/accept), friend **check-ins**, presence-based
+  **verification** + authenticity badge. Needs the Phase 3 tables
+  (`friendships`, `game_checkins`, `verifications`) + RLS — not yet in the schema.
+- Acquisition-type **filters** on Tendencies/Scouting; deeper breakdowns.
+
+### Deferred
+- **Photos** (spec §8) — no image storage in this build; Gallery is built
+  photo-shaped so they drop in later (Cloudflare R2 when added).
+
+## Tech debt / notes for later
+- MLB API is fetched **directly from the browser** (CORS-open). Fine for now; a
+  server route could add caching/rate-limit protection later.
+- `game_date` now stores the **local** check-in date (`todayIso()`), matching the
+  schedule query. Revisit if we ever need the venue-local date precisely.
+- The offline queue has no max-attempts cap; a permanently-failing item retries
+  forever. Consider a cap + surfaced error once sync is confirmed working.
+
+## Commit cadence
+One commit per work package (WP0 … WP7), pushed after each. Tag the milestone
+when WP7 passes. (WP0–WP6 + the check-in date fix are committed & pushed.)

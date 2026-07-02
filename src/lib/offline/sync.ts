@@ -42,8 +42,12 @@ export async function flushQueue(
   }
   flushing = true;
   let synced = 0;
+  let failed = 0;
   try {
     const items = await getAllCatches();
+    if (items.length > 0) {
+      console.info(`[sync] flushing ${items.length} queued catch(es)…`);
+    }
     for (const item of items) {
       try {
         let gameId = item.gameId;
@@ -57,6 +61,11 @@ export async function flushQueue(
             mlbGamePk: item.gamePk,
           });
           if (!g.ok || !g.data) {
+            console.error(
+              `[sync] game step failed (localId=${item.localId}):`,
+              g.ok ? "no data returned" : g.error
+            );
+            failed++;
             await bumpAttempts(item);
             continue;
           }
@@ -74,6 +83,11 @@ export async function flushQueue(
             jerseyNumber: item.person.jerseyNumber,
           });
           if (!p.ok || !p.data) {
+            console.error(
+              `[sync] player step failed (localId=${item.localId}, person=${item.person.fullName}):`,
+              p.ok ? "no data returned" : p.error
+            );
+            failed++;
             await bumpAttempts(item);
             continue;
           }
@@ -88,15 +102,28 @@ export async function flushQueue(
           occurredAt: item.occurredAt,
         });
         if (!b.ok) {
+          console.error(
+            `[sync] ball insert failed (localId=${item.localId}):`,
+            b.error
+          );
+          failed++;
           await bumpAttempts(item);
           continue;
         }
 
         await removeCatch(item.localId);
         synced++;
-      } catch {
+      } catch (err) {
+        console.error(
+          `[sync] unexpected error (localId=${item.localId}):`,
+          err
+        );
+        failed++;
         await bumpAttempts(item);
       }
+    }
+    if (synced > 0 || failed > 0) {
+      console.info(`[sync] done — synced=${synced}, failed=${failed}`);
     }
   } finally {
     flushing = false;

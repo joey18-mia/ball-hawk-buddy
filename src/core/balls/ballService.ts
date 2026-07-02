@@ -19,20 +19,15 @@ export async function insertBall(
     occurredAt: string; // ISO timestamp captured at tap time
   }
 ): Promise<ServiceResult<Ball>> {
+  // Game Mode writes ONLY the core "sentence" fields. Enrichment columns are
+  // deliberately omitted (not sent as null) so capture doesn't depend on those
+  // columns existing yet; they default to null and get filled in Enrich mode.
   const insert: BallInsert = {
     user_id: params.userId,
     game_id: params.gameId,
     player_id: params.playerId,
     acquisition_type: params.acquisitionType,
     occurred_at: params.occurredAt,
-    // Enrichment fields — all optional, filled later in Enrich mode.
-    location: null,
-    speciality: null,
-    notes: null,
-    snag_method: null,
-    ball_condition: null,
-    ball_brand: null,
-    kept: null,
   };
 
   const { data, error } = await client
