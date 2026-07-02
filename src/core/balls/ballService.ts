@@ -6,8 +6,58 @@
  */
 
 import type { AppSupabaseClient } from "../auth/authService";
-import type { AcquisitionType, Ball, BallInsert } from "../types/database";
+import type { AcquisitionType, Ball, BallInsert, Game, Player } from "../types/database";
 import type { ServiceResult } from "../profiles/profileService";
+
+export interface BallWithContext {
+  ball: Ball;
+  game: Game;
+  player: Player | null;
+}
+
+type BallRowJoined = Ball & {
+  games: Game;
+  players: Player | null;
+};
+
+function mapJoined(row: BallRowJoined): BallWithContext {
+  const { games, players, ...ball } = row;
+  return { ball: ball as Ball, game: games, player: players };
+}
+
+export async function listBallsForUser(
+  client: AppSupabaseClient,
+  userId: string
+): Promise<ServiceResult<BallWithContext[]>> {
+  const { data, error } = await client
+    .from("balls")
+    .select("*, games (*), players (*)")
+    .eq("user_id", userId)
+    .order("occurred_at", { ascending: false });
+
+  if (error) return { ok: false, error: error.message };
+  // Nested joins work at runtime; our hand-written Database type has no
+  // Relationships block, so supabase-js types the select as SelectQueryError.
+  const rows = (data ?? []) as unknown as BallRowJoined[];
+  return { ok: true, data: rows.map(mapJoined) };
+}
+
+export async function getBallWithContext(
+  client: AppSupabaseClient,
+  ballId: string,
+  userId: string
+): Promise<ServiceResult<BallWithContext>> {
+  const { data, error } = await client
+    .from("balls")
+    .select("*, games (*), players (*)")
+    .eq("id", ballId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "Catch not found." };
+  return { ok: true, data: mapJoined(data as unknown as BallRowJoined) };
+}
 
 export async function insertBall(
   client: AppSupabaseClient,
